@@ -10,7 +10,8 @@ from scipy.misc import imresize
 
 class RoverRun(Rover):
     def __init__(self, fileName, network_name, autonomous, driver, rover, FPS,
-                 view, save_data, framework, image_type):
+                 view, save_data, framework, image_type, normalization,
+                 norm_vals, num_out):
 
         Rover.__init__(self)
         self.FPS = FPS
@@ -39,7 +40,8 @@ class RoverRun(Rover):
                 self.im_shp = [None, 130, 320, 1]
 
         self.d = Data(driver, rover, save_data, framework, fileName,
-                      network_name, self.im_shp)
+                      network_name, self.im_shp, normalization, norm_vals, num_out)
+
         if self.autonomous is True:
             self.model = self.d.load_network()
 
@@ -66,14 +68,13 @@ class RoverRun(Rover):
                     if self.act[-1] != 9 and self.save_data in ['y', 'Y']:
                         self.d.add_data(s, self.act[-1])
             else:
+                s = self.d.normalize(s)
+
                 if self.framework in ['tf', 'TF']:
                     s = s[None,110:,:,:]
 
                     if self.image_type in ['grayscale', 'framestack']:
                         s = np.mean(s, 3, keepdims=True)
-
-                    # Instance Normalization
-                    s = (s - np.mean(s)) / (np.std(s) + 1e-6)
 
                     # Framestack
                     if self.image_type in ['framestack']:
@@ -82,14 +83,14 @@ class RoverRun(Rover):
                         s = self.framestack[:, :, :, self.stack]
 
                     # predict the correct steering angle from input
-                    self.angle = np.argmax(self.model.predict(s))
+                    self.angle = self.model.predict(s)
 
                 elif self.framework in ['pt', 'PT']:
                     s = imresize(s, (224, 224)).transpose((2, 0, 1))[None,...]
                     s = torch.from_numpy(s).float().cuda()
-                    self.angle = self.model(s).detach().cpu().numpy()
-                    self.angle = np.argmax(self.angle[0, :])
+                    self.angle = self.model(s).detach().cpu().numpy()[0, :]
 
+                self.angle = np.argmax(self.angle)
                 os.system('clear')
                 self.act = self.userInterface.action_dict[self.angle]
 
