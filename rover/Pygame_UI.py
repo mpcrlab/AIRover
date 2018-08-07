@@ -1,6 +1,7 @@
 import pygame
 import cv2
 from scipy.misc import bytescale
+import os
 
 class Pygame_UI:
     def __init__(self, fps, speed):
@@ -41,7 +42,7 @@ class Pygame_UI:
 
     def manage_UI(self):
         self.clock.tick(self.fps)
-        #pygame.display.flip()
+        os.system('clear')
         return
 
     def show_feed(self, image):
