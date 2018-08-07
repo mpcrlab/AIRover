@@ -67,6 +67,24 @@ if __name__ == '__main__':
         default='color',
         help='grayscale, color, or framestack. Default is color.')
 
+    parser.add_argument(
+        '--norm_method',
+        type=str,
+        default=None,
+        help='Type instance_norm or channel_norm.')
+
+    parser.add_argument(
+        '--norm_vals',
+        type=str,
+        default='0,0,0',
+        help='values to use in normalization.')
+
+    parser.add_argument(
+        '--num_outputs',
+        type=int,
+        default=4,
+        help='The number of outputs for the network.')
+
     args = parser.parse_args()
     a = args.autonomous
     model_file_name = args.model_name
@@ -78,6 +96,9 @@ if __name__ == '__main__':
     data_save = args.save_training_data
     fw = args.ml_framework
     image_type = args.image_type
+    normalization = args.norm_method
+    norm_vals = [int(item) for item in args.norm_vals.split(',')]
+    nout = args.num_outputs
 
     if data_save in ['y', 'Y', 'yes', 'Yes'] and a is True:
         data_save = False
@@ -91,4 +112,7 @@ if __name__ == '__main__':
                     view,
                     data_save,
                     fw,
-                    image_type)
+                    image_type,
+                    normalization,
+                    norm_vals,
+                    nout)
