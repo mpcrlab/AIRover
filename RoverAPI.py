@@ -40,10 +40,11 @@ class RoverRun(Rover):
                 self.im_shp = [None, 130, 320, 1]
 
         self.d = Data(driver, rover, save_data, framework, fileName,
-                      network_name, self.im_shp, normalization, norm_vals, num_out)
+                      network_name, self.im_shp, normalization, norm_vals,
+                      num_out, self.image_type)
 
         if self.autonomous is True:
-            self.model = self.d.load_network()
+            self.d.load_network()
 
         self.run()
 
@@ -69,29 +70,7 @@ class RoverRun(Rover):
                         self.d.add_data(s, self.act[-1])
             else:
                 s = self.d.normalize(s)
-
-                if self.framework in ['tf', 'TF']:
-                    s = s[None,110:,:,:]
-
-                    if self.image_type in ['grayscale', 'framestack']:
-                        s = np.mean(s, 3, keepdims=True)
-
-                    # Framestack
-                    if self.image_type in ['framestack']:
-                        current = s
-                        self.framestack = np.concatenate((current, self.framestack[:, :, :, 1:]), 3)
-                        s = self.framestack[:, :, :, self.stack]
-
-                    # predict the correct steering angle from input
-                    self.angle = self.model.predict(s)
-
-                elif self.framework in ['pt', 'PT']:
-                    s = imresize(s, (224, 224)).transpose((2, 0, 1))[None,...]
-                    s = torch.from_numpy(s).float().cuda()
-                    self.angle = self.model(s).detach().cpu().numpy()[0, :]
-
-                self.angle = np.argmax(self.angle)
-                os.system('clear')
+                self.angle = self.d.predict(s)
                 self.act = self.userInterface.action_dict[self.angle]
 
             self.set_wheel_treads(self.act[0], self.act[1])
