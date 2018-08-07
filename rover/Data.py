@@ -9,12 +9,13 @@ import torchvision.models as models
 from NetworkSwitch import *
 import torch
 import torch.nn as nn
+from scipy.misc import imresize
 
 
 class Data():
     def __init__(self, driver_name, rover_name, save_data, framework,
                  filename, network_num, input_shape, normalization, norm_vals,
-                 num_out):
+                 num_out, image_type):
         self.angles = []
         self.images = []
         self.start = time.time()
@@ -27,6 +28,7 @@ class Data():
         self.normalization = normalization
         self.norm_vals = norm_vals
         self.num_out = num_out
+        self.image_type = image_type
 
 
     def load_network(self):
@@ -44,7 +46,26 @@ class Data():
             self.model.fc = nn.Linear(512, self.num_out)
             self.model.cuda()
             self.model.load_state_dict(torch.load(self.filename))
-        return self.model
+            self.model.eval()
+        return
+
+
+    def predict(self, s):
+        if self.framework in ['tf', 'TF']:
+            s = s[None, 110:, ...]
+            if self.image_type in ['grayscale', 'framestack']:
+                s = np.mean(s, 3, keepdims=True)
+                if self.image_type in ['framestack']:
+                    current = s
+                    self.framestack = np.concatenate((current, self.framestack[:, :, :, 1:]), 3)
+                    s = self.framestack[:, :, :, self.stack]
+
+            out = self.model.predict(s)
+        elif self.framework in ['pt', 'PT']:
+            out = imresize(s, (224, 224)).transpose((2, 0, 1))[None,...]
+            out = torch.from_numpy(out).float().cuda()
+            out = self.model(out).detach().cpu().numpy()[0, :]
+        return np.argmax(out)
 
 
     def normalize(self, x):
