@@ -13,7 +13,8 @@ import torch.nn as nn
 
 class Data():
     def __init__(self, driver_name, rover_name, save_data, framework,
-                 filename, network_num, input_shape):
+                 filename, network_num, input_shape, normalization, norm_vals,
+                 num_out):
         self.angles = []
         self.images = []
         self.start = time.time()
@@ -23,27 +24,45 @@ class Data():
         self.filename = filename
         self.network_num = network_num
         self.input_shape = input_shape
+        self.normalization = normalization
+        self.norm_vals = norm_vals
+        self.num_out = num_out
 
 
     def load_network(self):
         if self.framework in ['tf', 'TF']:
             tflearn.config.init_training_mode()
             self.network = input_data(shape=self.input_shape)
-            self.network = modelswitch[self.network_num](self.network, drop_prob=1.0)
+            self.network = modelswitch[self.network_num](self.network,
+                                                         self.num_out,
+                                                         drop_prob=1.0)
             self.model = tflearn.DNN(self.network)
             self.model.load(self.filename)
+
         elif self.framework in ['PT', 'pt']:
             self.model=models.resnet34()
-            self.model.fc = nn.Linear(512, 4)
+            self.model.fc = nn.Linear(512, self.num_out)
             self.model.cuda()
             self.model.load_state_dict(torch.load(self.filename))
         return self.model
+
+
+    def normalize(self, x):
+        if self.normalization is not None:
+            if self.normalization == 'instance_norm':
+                x = (x - np.mean(x)) / (np.std(x) + 1e-6)
+            elif self.normalization == 'channel_norm':
+                for j in range(x.shape[-1]):
+                    x[..., j] -= self.norm_vals[j]
+        return x
+
 
     def add_data(self, image, action):
         self.angles.append(action)
         self.images.append(image)
         print('Collecting Data')
         return
+
 
     def save(self):
         if self.save_data in ['y', 'Y', 'yes', 'Yes']:
