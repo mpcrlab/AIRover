@@ -23,7 +23,7 @@ class Pygame_UI:
         self.action_dict[2] = [speed, -speed]
         self.action_dict['s'] = [-speed, -speed, 3]
         self.action_dict[3] = [-speed, -speed]
-        self.action_dict[' '] = [0, 0, -9]
+        self.action_dict[' '] = [0, 0, 4]
         self.action_dict['q'] = [0, 0, 9]
 
 
