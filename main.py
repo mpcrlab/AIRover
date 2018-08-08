@@ -1,8 +1,5 @@
-#from RoverRun import *
-#from RoverSimple import *
 from RoverAPI import *
 import argparse
-from NetworkSwitch import *
 
 
 if __name__ == '__main__':
@@ -22,7 +19,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
 	   '--network',
-       type=int,
+       type=str,
        help='Number of the network that exists in the NetworkSwitch file.')
 
     parser.add_argument(
