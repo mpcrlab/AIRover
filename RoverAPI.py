@@ -5,7 +5,7 @@ from rover.Pygame_UI import *
 from rover import Rover
 import time
 import numpy as np
-from scipy.misc import imresize
+#from scipy.misc import imresize
 
 
 class RoverRun(Rover):
@@ -23,8 +23,6 @@ class RoverRun(Rover):
         self.quit = False
         self.angle = 0
         self.autonomous = autonomous
-        self.network = network_name
-        self.framework = framework
         self.image_type = image_type
         self.im_shp = None
         self.act = self.userInterface.action_dict['q']
