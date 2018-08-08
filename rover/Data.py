@@ -14,7 +14,7 @@ from scipy.misc import imresize
 
 class Data():
     def __init__(self, driver_name, rover_name, save_data, framework,
-                 filename, network_num, input_shape, normalization, norm_vals,
+                 filename, network_name, input_shape, normalization, norm_vals,
                  num_out, image_type):
         self.angles = []
         self.images = []
@@ -23,7 +23,7 @@ class Data():
         self.save_data = save_data
         self.framework = framework
         self.filename = filename
-        self.network_num = network_num
+        self.network_name =network_name
         self.input_shape = input_shape
         self.normalization = normalization
         self.norm_vals = norm_vals
@@ -33,16 +33,22 @@ class Data():
 
     def load_network(self):
         if self.framework in ['tf', 'TF']:
-            tflearn.config.init_training_mode()
+            if self.network_name in ['ResNet34',
+                                     'ResNet26',
+                                     'ResNeXt34',
+                                     'ResNeXt26']:
+                tflearn.config.init_training_mode()
+            self.network_name = modelswitch[self.network_name]
             self.network = input_data(shape=self.input_shape)
-            self.network = modelswitch[self.network_num](self.network,
-                                                         self.num_out,
-                                                         drop_prob=1.0)
+            self.network = self.network_name(self.network,
+                                             self.num_out,
+                                             drop_prob=1.0)
             self.model = tflearn.DNN(self.network)
             self.model.load(self.filename)
 
         elif self.framework in ['PT', 'pt']:
-            self.model=models.resnet34()
+            self.network_name = models.__dict__[self.network_name]
+            self.model=self.network_name()
             self.model.fc = nn.Linear(512, self.num_out)
             self.model.cuda()
             self.model.load_state_dict(torch.load(self.filename))
@@ -57,14 +63,16 @@ class Data():
                 s = np.mean(s, 3, keepdims=True)
                 if self.image_type in ['framestack']:
                     current = s
-                    self.framestack = np.concatenate((current, self.framestack[:, :, :, 1:]), 3)
+                    self.framestack = np.concatenate((current,
+                                               self.framestack[:, :, :, 1:]), 3)
                     s = self.framestack[:, :, :, self.stack]
-
             out = self.model.predict(s)
+
         elif self.framework in ['pt', 'PT']:
             out = imresize(s, (224, 224)).transpose((2, 0, 1))[None,...]
             out = torch.from_numpy(out).float().cuda()
             out = self.model(out).detach().cpu().numpy()[0, :]
+
         return np.argmax(out)
 
 
