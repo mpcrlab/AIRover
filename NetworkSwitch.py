@@ -81,13 +81,15 @@ def Alex1(network, num_out, drop_prob=1.0):
     network = conv_2d(network, 256, 3, activation='relu')
     network = max_pool_2d(network, 3, strides=2)
     network = local_response_normalization(network)
+    network = fully_connected(network, num_out, activation='softmax',
+                              bias=False, weights_init='normal', trainable=False,
+                              weight_decay=0.)
+    #network = fully_connected(network, 4096, activation='tanh')
+    #network = dropout(network, drop_prob)
+    #network = fully_connected(network, 4096, activation='tanh')
+    #network = dropout(network, drop_prob)
 
-    network = fully_connected(network, 4096, activation='tanh')
-    network = dropout(network, drop_prob)
-    network = fully_connected(network, 4096, activation='tanh')
-    network = dropout(network, drop_prob)
-
-    network = fully_connected(network, num_out, activation='softmax')
+    #network = fully_connected(network, num_out, activation='softmax')
 
     return network
 
@@ -519,21 +521,21 @@ def ResNeXt34(network):
 
 
 modelswitch = {
-    0 : DNN1,
-    1 : Conv1,
-    2 : Alex1,
-    3 : VGG1,
-    4 : Highway1,
-    5 : ConvHighway1,
-    6 : Net_in_Net1,
-    7 : ResNet26,
-    8 : ResNeXt,
-    9 : GoogLeNet1,
-    10 : LSTM1,
-    11 : DenseNet,
-    12 : RCNN1,
-    13 : lstm2,
-    14 : X3,
-    15: ResNet34,
-    16: ResNeXt34,
+    'FullyConnected' : DNN1,
+    'CNN' : Conv1,
+    'AlexNet' : Alex1,
+    'VGG' : VGG1,
+    'Highway' : Highway1,
+    'CNNHighway' : ConvHighway1,
+    'NetinNet' : Net_in_Net1,
+    'ResNet26' : ResNet26,
+    'ResNeXt26' : ResNeXt,
+    'InceptionV3' : GoogLeNet1,
+    'LSTM' : LSTM1,
+    'DenseNet' : DenseNet,
+    'RCNN' : RCNN1,
+    'LSTM2' : lstm2,
+    'X3' : X3,
+    'ResNet34' : ResNet34,
+    'ResNeXt34' : ResNeXt34,
 }
