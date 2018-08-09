@@ -48,7 +48,6 @@ class RoverRun(Rover):
 
 
     def run(self):
-        start_time = time.time()
         while type(self.image) == type(None):
             pass
 
@@ -73,10 +72,6 @@ class RoverRun(Rover):
 
             self.set_wheel_treads(self.act[0], self.act[1])
             self.userInterface.manage_UI()
-
-        # print runtime
-        elapsed_time = np.round(time.time() - start_time, 2)
-        print('This run lasted %.2f seconds'%(elapsed_time))
 
         # cleanup and stop vehicle
         self.set_wheel_treads(0, 0)
