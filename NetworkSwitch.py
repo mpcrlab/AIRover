@@ -81,15 +81,12 @@ def Alex1(network, num_out, drop_prob=1.0):
     network = conv_2d(network, 256, 3, activation='relu')
     network = max_pool_2d(network, 3, strides=2)
     network = local_response_normalization(network)
-    network = fully_connected(network, num_out, activation='softmax',
-                              bias=False, weights_init='normal', trainable=False,
-                              weight_decay=0.)
-    #network = fully_connected(network, 4096, activation='tanh')
-    #network = dropout(network, drop_prob)
-    #network = fully_connected(network, 4096, activation='tanh')
-    #network = dropout(network, drop_prob)
+    network = fully_connected(network, 4096, activation='tanh')
+    network = dropout(network, drop_prob)
+    network = fully_connected(network, 4096, activation='tanh')
+    network = dropout(network, drop_prob)
 
-    #network = fully_connected(network, num_out, activation='softmax')
+    network = fully_connected(network, num_out, activation='softmax')
 
     return network
 
