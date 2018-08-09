@@ -1,7 +1,9 @@
 import pygame
+import numpy as np
 import cv2
 from scipy.misc import bytescale
 import os
+import time
 
 class Pygame_UI:
     def __init__(self, fps, speed):
@@ -14,6 +16,7 @@ class Pygame_UI:
         self.font = pygame.font.SysFont(None, self.fontSize)
         self.clock = pygame.time.Clock()
         self.fps = fps
+        self.start_time = time.time()
         self.color = (0,0,0)
         self.action_dict = {}
         self.action_dict['a'] = [-speed, speed, 0]
@@ -52,5 +55,8 @@ class Pygame_UI:
         return
 
     def cleanup(self):
+        elapsed_time = np.round(time.time() - self.start_time, 2)
+        print('This run lasted %.2f seconds'%(elapsed_time))
         pygame.quit()
         cv2.destroyAllWindows()
+        return
