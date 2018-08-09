@@ -21,16 +21,17 @@ from scipy.misc import imshow, imresize
 import argparse
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument(
     '--model_name',
     type=str,
     required=True,
-    help='What to save the model under')
+    help='What to save the model as.')
 parser.add_argument(
-    '--use_pretrained',
+    '--network_name',
     type=str,
-    default='n',
-    help='Do you want to use a pretrained model?')
+    required=True,
+    help='The name of the neural network you want to train.')
 parser.add_argument(
     '--dropout_prob',
     type=float,
@@ -42,19 +43,18 @@ parser.add_argument(
     type=int,
     default=10000,
     help='How many iterations of gradient descent to do')
+parser.add_argument(
+    '--data_path',
+    type=str,
+    default=os.path.join(os.getcwd(), 'RoverData/Right2'),
+    help='The path to where the training data is located.')
 
 args = parser.parse_args()
 m_save = args.model_name + '_'
-pt = args.use_pretrained
 dropout_keep_prob = args.dropout_prob
 training_iterations=args.training_iters
-
-if pt == 'n':
-    pt = False
-elif pt in ['y', 'Y']:
-    pt = True
-#m_save = 'Sheri_3frames5,15_GrayCropped_RightAllDrivers_'
-#pt = False
+network_name = args.network_name
+data_path = args.data_path
 
 if 'Color' in m_save:
     im_method = 0
@@ -69,27 +69,11 @@ elif '1frame_GrayCropped' in m_save:
     num_stack = 1
     channs = 1
 
-# prompt the user for which model they want to train from NetworkSwitch.py
-print(modelswitch)
-model_num = np.int32(raw_input('Which model do you want to train (0 - ' + str(len(modelswitch)-1) + ')?'))
-
-# load a pretrained model
-if pt:
-    fileName = glob.glob('/home/TF_Rover/RoverData/*.index')
-    fileName = fileName[0]
-    network = input_data(shape=[None, 130, 320, channs])
-    modelFind = fileName[fileName.find('_', 64, len(fileName))+1:-6]
-    assert(modelFind == modelswitch[model_num].__name__), 'different models'
-    net_out = globals()[modelFind](network, dropout_keep_prob)
-    model = tflearn.DNN(network)
-    model.load(fileName[:-6])
-
-
-# start tensorboard 
+# start tensorboard
 os.system('tensorboard --logdir=/tmp/tflearn_logs/ &')
 
 # define useful variables
-os.chdir(os.path.join(os.getcwd(), 'RoverData/Right2'))
+os.chdir(data_path)
 fnames = glob.glob('*.h5') # datasets to train on
 batch_sz = 150  # training batch size
 val_name = 'Run_218seconds_Michael_Sheri.h5' # Dataset to use for validation
@@ -102,7 +86,7 @@ def create_framestack(x, y, f_args):
     f_args.sort()
     X_ = []
     Y_ = []
-    
+
     for ex_num in range(x.shape[0]-1, max(f_args), -1):
         xf = x[ex_num, ...]
 
@@ -113,19 +97,19 @@ def create_framestack(x, y, f_args):
 
         X_.append(xf)
         Y_.append(y[ex_num, :])
-        
+
     return np.asarray(X_), np.asarray(Y_)
 
 
 def random_crop(x, padlen=30):
     h, w = x.shape[1], x.shape[2]
     X = np.zeros(x.shape)
-    x = np.pad(x, 
-              ((0,0), 
-              (padlen//2,padlen//2), 
-              (padlen//2,padlen//2), 
+    x = np.pad(x,
+              ((0,0),
+              (padlen//2,padlen//2),
+              (padlen//2,padlen//2),
               (0,0)), 'constant')
-    
+
     for i in range(x.shape[0]):
         h_ind, w_ind = np.random.randint(0, padlen, 2)
         X[i,...] = x[i, h_ind:h_ind+h, w_ind:w_ind+w, :]
@@ -152,10 +136,10 @@ def batch_get(filename, batch_size, channs, num_classes):
         x[count,...] = X[r, 110:, ...]
         y[count, int(Y[r] + 1.0)] = 1.0
         count += 1
-    
+
     if im_method in [1, 2]:
         X = np.mean(X, 3, keepdims=True) # grayscale and crop frames
-        
+
     assert(X.shape[0] == Y.shape[0]), 'Data and labels different sizes'
     f.flush()
     f.close()
@@ -167,11 +151,8 @@ print('Validation Dataset: %s'%(val_name))
 
 # Create input layer and label placeholder for the network
 labels = tf.placeholder(dtype=tf.float32, shape=[None, num_classes])
-
-if not pt:
-    network = tf.placeholder(dtype=tf.float32, shape=[None, 130, 320, channs])
-    net_out = modelswitch[model_num](network, dropout_keep_prob)
-
+network = tf.placeholder(dtype=tf.float32, shape=[None, 130, 320, channs])
+net_out = modelswitch[network_name](network, 4, dropout_keep_prob)
 
 # send the input placeholder to the specified network
 acc = tf.reduce_mean(tf.to_float(tf.equal(tf.argmax(net_out, 1), tf.argmax(labels, 1))))
@@ -191,9 +172,9 @@ trainop = tflearn.TrainOp(loss=cost,
                          batch_size=batch_sz)
 model = Trainer(train_ops=trainop)
 
-writer = tf.summary.FileWriter('/tmp/tflearn_logs/test'+m_save+modelswitch[model_num].__name__,
+writer = tf.summary.FileWriter('/tmp/tflearn_logs/test' + m_save + network_name,
                                model.session.graph)
-writer2 = tf.summary.FileWriter('/tmp/tflearn_logs/train'+m_save+modelswitch[model_num].__name__,
+writer2 = tf.summary.FileWriter('/tmp/tflearn_logs/train' + m_save + network_name,
                                model.session.graph)
 
 
@@ -201,13 +182,13 @@ writer2 = tf.summary.FileWriter('/tmp/tflearn_logs/train'+m_save+modelswitch[mod
 ################################## Main Loop #######################################
 
 for i in range(training_iterations):
-    
+
     # pick random dataset for this epoch
     n = np.random.randint(1, len(fnames)-1, 1)
     filename = fnames[n[0]]
-    
+
     # skip validation set if chosen
-    if filename == val_name: 
+    if filename == val_name:
         continue
 
     # load the chosen data file
@@ -225,29 +206,30 @@ for i in range(training_iterations):
 
     # Training
     model.fit_batch(feed_dicts={network:X, labels:Y})
-    train_acc, train_loss = model.session.run([acc, cost], feed_dict={network:X, labels:Y})
-        
+    train_acc, train_loss = model.session.run([acc, cost],
+                                              feed_dict={network:X, labels:Y})
+
     train_summary = model.session.run(merged, feed_dict={network:X, labels:Y})
     writer2.add_summary(train_summary, i)
-          
+
     if i%100 == 0:
         # get validation batch
         tx, ty = batch_get(val_name, 600, channs, num_classes)
-        
+
         # feature scale validation data
         tx = feature_scale(tx)
-        
+
         # Create validation framestack
         if num_stack != 1:
             tx, ty = create_framestack(tx, ty, stack_nums)
-        
+
         assert(ty.shape[0] == tx.shape[0]),'data and label shapes do not match'
-        
+
         # Get validation accuracy and error rate
-        val_acc, val_loss, summary = model.session.run([acc, cost, merged], 
-                                                   feed_dict={network:tx, labels:ty})
+        val_acc, val_loss, summary = model.session.run([acc, cost, merged],
+                                            feed_dict={network:tx, labels:ty})
         writer.add_summary(summary, i)
 
 
 # Save model and acc/error curves
-model.save(m_save+modelswitch[model_num].__name__)
+model.save(m_save + modelswitch[network_name].__name__)
