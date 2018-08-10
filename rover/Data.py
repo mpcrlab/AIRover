@@ -10,7 +10,7 @@ from NetworkSwitch import *
 import torch
 import torch.nn as nn
 from scipy.misc import imresize
-
+from skimage.transform import resize
 
 class Data():
     def __init__(self, driver_name, rover_name, save_data, framework,
@@ -69,7 +69,7 @@ class Data():
             out = self.model.predict(s)
 
         elif self.framework in ['pt', 'PT']:
-            out = imresize(s, (224, 224)).transpose((2, 0, 1))[None,...]
+            out = resize(s, (224, 224)).transpose((2, 0, 1))[None,...]
             out = torch.from_numpy(out).float().cuda()
             out = self.model(out).detach().cpu().numpy()[0, :]
 
