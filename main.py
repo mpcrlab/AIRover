@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_name',
     	type=str,
-    	help='name of the model file')
+    	help='path to the model file if autonomous.')
 
     parser.add_argument(
     	'--autonomous',
@@ -20,19 +20,19 @@ if __name__ == '__main__':
     parser.add_argument(
 	   '--network',
        type=str,
-       help='Number of the network that exists in the NetworkSwitch file.')
+       help='Name of the network you want to run if autonomous. Ex. resnet34')
 
     parser.add_argument(
         '--driver',
         type=str,
         default='unknown_driver',
-        help='The name of the person operating or running the rover.')
+        help='The name of the person operating or running the rover. Optional')
 
     parser.add_argument(
         '--rover',
         type=str,
         default='no_name',
-        help='The name on the rover being used.')
+        help='The name on the rover being used. Optional')
 
     parser.add_argument(
         '--frames_per_second',
@@ -50,37 +50,37 @@ if __name__ == '__main__':
         '--save_training_data',
         type=str,
         default='y',
-        help='Whether or not to save training data (y/n) if not autonomous.')
+        help='y to save training data if not autonomous, n to not save. Default y')
 
     parser.add_argument(
         '--ml_framework',
         type=str,
         default='tf',
-        help='tf for TensorFlow model, pt for PyTorch model.')
+        help='tf for TensorFlow model, pt for PyTorch model. Default tf')
 
     parser.add_argument(
         '--image_type',
         type=str,
         default='color',
-        help='grayscale, color, or framestack. Default is color.')
+        help='grayscale, color, or framestack for model input if autonomous. Default is color.')
 
     parser.add_argument(
         '--norm_method',
         type=str,
         default=None,
-        help='Type instance_norm or channel_norm.')
+        help='Type instance_norm or channel_norm. Default None')
 
     parser.add_argument(
         '--norm_vals',
         type=str,
         default='0,0,0',
-        help='values to use in normalization.')
+        help='values to use in normalization if norm_method is not None.')
 
     parser.add_argument(
         '--num_outputs',
         type=int,
         default=4,
-        help='The number of outputs for the network.')
+        help='The number of outputs for the network. Default 4.')
 
     args = parser.parse_args()
     a = args.autonomous
