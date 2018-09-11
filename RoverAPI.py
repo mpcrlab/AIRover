@@ -63,6 +63,9 @@ class RoverRun(Rover):
             if self.autonomous is not True:
                     if key in ['w', 'a', 's', 'd', 'q', ' ']:
                         self.act = self.userInterface.action_dict[key]
+                    else:
+                        continue
+                    
                     if self.act[-1] != 9 and self.save_data in ['y', 'Y']:
                         self.d.add_data(s, self.act[-1])
             else:
