@@ -14,8 +14,8 @@ if __name__ == '__main__':
     parser.add_argument(
     	'--autonomous',
     	type=str,
-    	default=True,
-    	help='True for autonomous, False for human control. Default True.')
+    	default=False,
+    	help='True for autonomous, False for human control. Default False.')
 
     parser.add_argument(
 	   '--network',
