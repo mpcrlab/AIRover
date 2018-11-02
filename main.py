@@ -13,12 +13,12 @@ if __name__ == '__main__':
 
     parser.add_argument(
     	'--autonomous',
-    	type=str,
+    	type=bool,
     	default=False,
     	help='True for autonomous, False for human control. Default False.')
 
     parser.add_argument(
-	   '--network',
+       '--network',
        type=str,
        help='Name of the network you want to run if autonomous. Ex. resnet34')
 
