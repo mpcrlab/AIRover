@@ -48,8 +48,8 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--save_training_data',
-        type=str,
-        default='y',
+        type=bool,
+        default=False,
         help='y to save training data if not autonomous, n to not save. Default y')
 
     parser.add_argument(
@@ -83,33 +83,21 @@ if __name__ == '__main__':
         help='The number of outputs for the network. Default 4.')
 
     args = parser.parse_args()
-    a = args.autonomous
-    model_file_name = args.model_name
-    network_name = args.network
-    driver = args.driver
-    rover = args.rover
-    fps = args.frames_per_second
-    view = args.show_video_feed
-    data_save = args.save_training_data
-    fw = args.ml_framework
-    image_type = args.image_type
-    normalization = args.norm_method
     norm_vals = [int(item) for item in args.norm_vals.split(',')]
-    nout = args.num_outputs
 
-    if data_save in ['y', 'Y', 'yes', 'Yes'] and a is True:
-        data_save = False
+    if args.save_training_data is True and args.autonomous is True:
+        args.save_training_data = False
 
-    rover = RoverRun(model_file_name,
-                    network_name,
-                    a,
-                    driver,
-                    rover,
-                    fps,
-                    view,
-                    data_save,
-                    fw,
-                    image_type,
-                    normalization,
+    rover = RoverRun(args.model_name,
+                    args.network,
+                    args.autonomous,
+                    args.driver,
+                    args.rover,
+                    args.frame_per_second,
+                    args.show_video_feed,
+                    args.save_training_data,
+                    args.ml_framework,
+                    args.image_type,
+                    args.norm_method,
                     norm_vals,
-                    nout)
+                    args.num_outputs)
