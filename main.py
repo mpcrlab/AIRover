@@ -93,7 +93,7 @@ if __name__ == '__main__':
                     args.autonomous,
                     args.driver,
                     args.rover,
-                    args.frame_per_second,
+                    args.frames_per_second,
                     args.show_video_feed,
                     args.save_training_data,
                     args.ml_framework,
