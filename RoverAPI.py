@@ -66,7 +66,7 @@ class RoverRun(Rover):
                     else:
                         continue
                     
-                    if self.act[-1] != 9 and self.save_data in ['y', 'Y']:
+                    if self.act[-1] != 9 and self.save_data is True:
                         self.d.add_data(s, self.act[-1])
             else:
                 s = self.d.normalize(s)
