@@ -355,7 +355,7 @@ def GoogLeNet1(network, num_out, drop_prob):
     inception_5b_pool_1_1 = conv_2d(inception_5b_pool, 128, filter_size=1, activation='relu', name='inception_5b_pool_1_1')
     inception_5b_output = merge([inception_5b_1_1, inception_5b_3_3, inception_5b_5_5, inception_5b_pool_1_1], axis=3, mode='concat')
 
-    pool5_7_7 = avg_pool_2d(inception_5b_output, kernel_size=7, strides=1)
+    pool5_7_7 = global_avg_pool(inception_5b_output)
     pool5_7_7 = dropout(pool5_7_7, 0.4)
 
     network = fully_connected(pool5_7_7, num_out, activation='softmax')
