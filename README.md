@@ -19,4 +19,4 @@
 ![ResNet-26 Color](https://github.com/mpcrlab/DNN_Rover/blob/master/Test_Videos/ResNet-26_Color_pos1.gif)
 
 ## LSTM Grayscale
-![LSTM Color](https://github.com/mpcrlab/DNN_Rover/blob/master/Test_Videos/LSTM_Color_pos1.gif)
+![LSTM Gray](https://github.com/mpcrlab/DNN_Rover/blob/master/Test_Videos/LSTM_Gray_pos1.gif)
